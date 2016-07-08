@@ -108,7 +108,7 @@ Summary: An interpreted, interactive, object-oriented programming language
 Name: %{python}
 # Remember to also rebase python-docs when changing this:
 Version: 2.7.11
-Release: 6%{?dist}
+Release: 7%{?dist}
 License: Python
 Group: Development/Languages
 Requires: %{python}-libs%{?_isa} = %{version}-%{release}
@@ -925,6 +925,12 @@ Patch201: 00201-prevent-buffer-overflow-in-zipimport-module.patch
 # Raise an error when STARTTLS fails
 Patch210: 00210-Raise-an-error-when-STARTTLS-fails.patch
 
+# 00211 #
+# Fix test breakage with version 2.2.0 of Expat
+# rhbz#1353919: https://bugzilla.redhat.com/show_bug.cgi?id=1353919
+# NOT YET FIXED UPSTREAM: http://bugs.python.org/issue27369
+Patch211: 00211-fix-test-pyexpat-failure.patch
+
 # (New patches go here ^^^)
 #
 # When adding new patches to "python" and "python3" in Fedora 17 onwards,
@@ -1291,6 +1297,7 @@ mv Modules/cryptmodule.c Modules/_cryptmodule.c
 %patch200 -p1
 %patch201 -p1
 %patch210 -p1
+%patch211 -p1
 
 
 # This shouldn't be necesarry, but is right now (2.2a3)
@@ -2142,6 +2149,9 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Fri Jul 08 2016 Charalampos Stratakis <cstratak@redhat.com> - 2.7.11-7
+- Fix test_pyexpat failure with Expat version of 2.2.0
+
 * Thu Jun 16 2016 Tomas Orsava <torsava@redhat.com> - 2.7.11-6
 - Fix for: CVE-2016-0772 python: smtplib StartTLS stripping attack
 - Raise an error when STARTTLS fails
