@@ -108,7 +108,7 @@ Summary: An interpreted, interactive, object-oriented programming language
 Name: %{python}
 # Remember to also rebase python-docs when changing this:
 Version: 2.7.11
-Release: 7%{?dist}
+Release: 8%{?dist}
 License: Python
 Group: Development/Languages
 Requires: %{python}-libs%{?_isa} = %{version}-%{release}
@@ -848,7 +848,6 @@ Patch187: 00187-add-RPATH-to-pyexpat.patch
 Patch189: 00189-gdb-py-bt-dont-raise-exception-from-eval.patch
 
 # 00190 #
-#
 # Importing get_python_version in bdist_rpm
 # http://bugs.python.org/issue18045
 # rhbz#1029082
@@ -856,19 +855,16 @@ Patch189: 00189-gdb-py-bt-dont-raise-exception-from-eval.patch
 #Patch190: 00190-get_python_version.patch
 
 # 00191 #
-#
 # Disabling NOOP test as it fails without internet connection
 Patch191: 00191-disable-NOOP.patch
 
 # 00192 #
-#
 # Fixing buffer overflow (upstream patch)
 # rhbz#1062375
 # FIXED UPSTREAM
 #Patch192: 00192-buffer-overflow.patch
 
 # 00193 #
-#
 # Enable loading sqlite extensions. This patch isn't needed for
 # python3.spec, since Python 3 has a configuration option for this.
 # rhbz#1066708
@@ -876,13 +872,13 @@ Patch191: 00191-disable-NOOP.patch
 Patch193: 00193-enable-loading-sqlite-extensions.patch
 
 # 00194 #
-#
 # Fix tests with SQLite >= 3.8.4
 # http://bugs.python.org/issue20901
 # http://hg.python.org/cpython/raw-rev/1763e27a182d
 # FIXED UPSTREAM
 #Patch194: 00194-fix-tests-with-sqlite-3.8.4.patch
 
+# 00195 #
 # Since openssl-1.0.1h-5.fc21 SSLv2 and SSLV3 protocols
 # are disabled by default in openssl, according the comment in openssl
 # patch this affects only SSLv23_method, this patch enables SSLv2
@@ -892,30 +888,37 @@ Patch193: 00193-enable-loading-sqlite-extensions.patch
 # disables only sslv2 all tests pass
 #Patch195: 00195-enable-sslv23-in-ssl.patch
 
+# 00196 #
 # http://bugs.python.org/issue21308
 # Backport of ssl module from python3
 # FIXED UPSTREAM
 # Patch196: 00196-ssl-backport.patch
 
+# 00197 #
 # http://bugs.python.org/issue22023
 # Patch seg fault in unicodeobject.c
 # FIXED UPSTREAM
 # Patch197: 00197-unicode_fromformat.patch
 
+# 00198 #
 %if 0%{with_rewheel}
 Patch198: 00198-add-rewheel-module.patch
 %endif
 
+# 00200 #
 # test_gdb.test_threads fails when run within rpmbuild
 # I couldnt reproduce the issue outside of rpmbuild, therefore
 # I skip test for now
 Patch200: 00200-skip-thread-test.patch
 
-# https://bugs.python.org/issue26171
+# 00209 #
+# CVE-2016-5636: http://seclists.org/oss-sec/2016/q2/560
+# rhbz#1345858: https://bugzilla.redhat.com/show_bug.cgi?id=1345858
 # https://hg.python.org/cpython/rev/985fc64c60d6/
+# https://hg.python.org/cpython/rev/2edbdb79cd6d
 # Fix possible integer overflow and heap corruption in zipimporter.get_data()
-# FIXED UPSTREAM
-Patch201: 00201-prevent-buffer-overflow-in-zipimport-module.patch
+# FIXED UPSTREAM: https://bugs.python.org/issue26171
+Patch209: 00209-CVE-2016-5636-buffer-overflow-in-zipimport-module-fix.patch
 
 # 00210 #
 # CVE-2016-0772 python: smtplib StartTLS stripping attack
@@ -1295,7 +1298,7 @@ mv Modules/cryptmodule.c Modules/_cryptmodule.c
 %patch198 -p1
 %endif
 %patch200 -p1
-%patch201 -p1
+%patch209 -p1
 %patch210 -p1
 %patch211 -p1
 
@@ -2149,6 +2152,9 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Fri Jul 08 2016 Charalampos Stratakis <cstratak@redhat.com> - 2.7.11-8
+- Refactor patch for properly fixing CVE-2016-5636
+
 * Fri Jul 08 2016 Charalampos Stratakis <cstratak@redhat.com> - 2.7.11-7
 - Fix test_pyexpat failure with Expat version of 2.2.0
 
