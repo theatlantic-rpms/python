@@ -107,8 +107,8 @@
 Summary: An interpreted, interactive, object-oriented programming language
 Name: %{python}
 # Remember to also rebase python-docs when changing this:
-Version: 2.7.11
-Release: 8%{?dist}
+Version: 2.7.12
+Release: 1%{?dist}
 License: Python
 Group: Development/Languages
 Requires: %{python}-libs%{?_isa} = %{version}-%{release}
@@ -316,7 +316,7 @@ Patch7: python-2.5.1-sqlite-encoding.patch
 # SONAME from a library; we avoid this, apparently to minimize space
 # requirements on the live CD:
 # (rhbz:307221)
-Patch10: python-2.7rc1-binutils-no-dep.patch
+Patch10: 00010-2.7.12-binutils-no-dep.patch
 
 # Upstream as of Python 2.7.3:
 #  Patch11: python-2.7rc1-codec-ascii-tolower.patch
@@ -352,7 +352,7 @@ Patch55: 00055-systemtap.patch
 # and add the /usr/lib64/pythonMAJOR.MINOR/site-packages to sitedirs, in front of
 # /usr/lib/pythonMAJOR.MINOR/site-packages
 # Not upstream
-Patch102: python-2.7.3-lib64.patch
+Patch102: 00102-2.7.12-lib64.patch
 
 # Python 2.7 split out much of the path-handling from distutils/sysconfig.py to
 # a new sysconfig.py (in r77704).
@@ -433,7 +433,7 @@ Patch111: 00111-no-static-lib.patch
 #
 #  See also patch 130 below
 #
-Patch112: python-2.7.3-debug-build.patch
+Patch112: 00112-2.7.12-debug-build.patch
 
 
 # 00113 #
@@ -712,7 +712,10 @@ Patch165: 00165-crypt-module-salt-backport.patch
 # a frame can't be read from the inferior process (rhbz#912025)
 #
 # Not yet sent upstream
-Patch166: 00166-fix-fake-repr-in-gdb-hooks.patch
+# This issue seems to have been fixed most probably by https://bugs.python.org/issue26799
+# as of Python 2.7.12 and test_gdb seems to fail with the patch applied
+# so dropping it for now.
+#Patch166: 00166-fix-fake-repr-in-gdb-hooks.patch
 
 # 00167 #
 # Don't run any of the stack navigation tests in test_gdb when Python is
@@ -918,7 +921,7 @@ Patch200: 00200-skip-thread-test.patch
 # https://hg.python.org/cpython/rev/2edbdb79cd6d
 # Fix possible integer overflow and heap corruption in zipimporter.get_data()
 # FIXED UPSTREAM: https://bugs.python.org/issue26171
-Patch209: 00209-CVE-2016-5636-buffer-overflow-in-zipimport-module-fix.patch
+#Patch209: 00209-CVE-2016-5636-buffer-overflow-in-zipimport-module-fix.patch
 
 # 00210 #
 # CVE-2016-0772 python: smtplib StartTLS stripping attack
@@ -926,12 +929,12 @@ Patch209: 00209-CVE-2016-5636-buffer-overflow-in-zipimport-module-fix.patch
 # rhbz#1346344: https://bugzilla.redhat.com/show_bug.cgi?id=1346344
 # FIXED UPSTREAM: https://hg.python.org/cpython/rev/b3ce713fb9be
 # Raise an error when STARTTLS fails
-Patch210: 00210-Raise-an-error-when-STARTTLS-fails.patch
+# Patch210: 00210-Raise-an-error-when-STARTTLS-fails.patch
 
 # 00211 #
 # Fix test breakage with version 2.2.0 of Expat
 # rhbz#1353919: https://bugzilla.redhat.com/show_bug.cgi?id=1353919
-# NOT YET FIXED UPSTREAM: http://bugs.python.org/issue27369
+# FIXED UPSTREAM: http://bugs.python.org/issue27369
 Patch211: 00211-fix-test-pyexpat-failure.patch
 
 # (New patches go here ^^^)
@@ -1264,7 +1267,7 @@ done
 # 00164: not for python 2 yet
 %patch165 -p1
 mv Modules/cryptmodule.c Modules/_cryptmodule.c
-%patch166 -p1
+# 00166: dropped as of Python 2.7.12
 %patch167 -p1
 %patch168 -p1
 %patch169 -p1
@@ -1298,8 +1301,8 @@ mv Modules/cryptmodule.c Modules/_cryptmodule.c
 %patch198 -p1
 %endif
 %patch200 -p1
-%patch209 -p1
-%patch210 -p1
+# 00209: upstream as of Python 2.7.12
+# 00210: upstream as of Python 2.7.12
 %patch211 -p1
 
 
@@ -2152,6 +2155,11 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Fri Jul 15 2016 Charalampos Stratakis <cstratak@redhat.com> - 2.7.12-1
+- Update to 2.7.12
+- Refactored patches: 10, 102, 112, 134, 153
+- Dropped patches: 166, 209, 210
+
 * Fri Jul 08 2016 Charalampos Stratakis <cstratak@redhat.com> - 2.7.11-8
 - Refactor patch for properly fixing CVE-2016-5636
 
