@@ -47,7 +47,7 @@
 %global with_systemtap 1
 
 # some arches don't have valgrind so we need to disable its support on them
-%ifnarch s390
+%ifnarch s390 %{mips}
 %global with_valgrind 1
 %else
 %global with_valgrind 0
@@ -108,7 +108,7 @@ Summary: An interpreted, interactive, object-oriented programming language
 Name: %{python}
 # Remember to also rebase python-docs when changing this:
 Version: 2.7.12
-Release: 1%{?dist}
+Release: 2%{?dist}
 License: Python
 Group: Development/Languages
 Requires: %{python}-libs%{?_isa} = %{version}-%{release}
@@ -937,6 +937,10 @@ Patch200: 00200-skip-thread-test.patch
 # FIXED UPSTREAM: http://bugs.python.org/issue27369
 Patch211: 00211-fix-test-pyexpat-failure.patch
 
+# 00243 #
+# Patch243: 00243-fix-mips64-triplet.patch
+# only necessary for python3
+
 # (New patches go here ^^^)
 #
 # When adding new patches to "python" and "python3" in Fedora 17 onwards,
@@ -1622,7 +1626,7 @@ install -d %{buildroot}/%{_prefix}/lib/python%{pybasever}/site-packages
 %global _pyconfig32_h pyconfig-32.h
 %global _pyconfig64_h pyconfig-64.h
 
-%ifarch %{power64} s390x x86_64 ia64 alpha sparc64 aarch64
+%ifarch %{power64} s390x x86_64 ia64 alpha sparc64 aarch64 %{mips64}
 %global _pyconfig_h %{_pyconfig64_h}
 %else
 %global _pyconfig_h %{_pyconfig32_h}
@@ -1691,7 +1695,7 @@ done
 # Install a tapset for this libpython into tapsetdir, fixing up the path to the
 # library:
 mkdir -p %{buildroot}%{tapsetdir}
-%ifarch %{power64} s390x x86_64 ia64 alpha sparc64 aarch64
+%ifarch %{power64} s390x x86_64 ia64 alpha sparc64 aarch64 %{mips64}
 %global libpython_stp_optimized libpython%{pybasever}-64.stp
 %global libpython_stp_debug     libpython%{pybasever}-debug-64.stp
 %else
@@ -1738,8 +1742,11 @@ CheckPython() {
 
   EXTRATESTOPTS="--verbose"
 
-%ifarch s390 s390x %{power64} %{arm} aarch64
+%ifarch s390 s390x %{power64} %{arm} aarch64 %{mips}
     EXTRATESTOPTS="$EXTRATESTOPTS -x test_gdb"
+%endif
+%ifarch %{mips64}
+    EXTRATESTOPTS="$EXTRATESTOPTS -x test_ctypes"
 %endif
 
 %if 0%{?with_huntrleaks}
@@ -2155,6 +2162,9 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Mon Aug 01 2016 Michal Toman <mtoman@fedoraproject.org> - 2.7.12-2
+- Build properly on MIPS
+
 * Fri Jul 15 2016 Charalampos Stratakis <cstratak@redhat.com> - 2.7.12-1
 - Update to 2.7.12
 - Refactored patches: 10, 102, 112, 134, 153
