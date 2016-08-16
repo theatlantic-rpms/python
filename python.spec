@@ -108,7 +108,7 @@ Summary: An interpreted, interactive, object-oriented programming language
 Name: %{python}
 # Remember to also rebase python-docs when changing this:
 Version: 2.7.12
-Release: 3%{?dist}
+Release: 4%{?dist}
 License: Python
 Group: Development/Languages
 Requires: %{python}-libs%{?_isa} = %{version}-%{release}
@@ -344,9 +344,6 @@ Patch17: python-2.6.4-distutils-rpath.patch
 # for 2.7rc1 by dmalcolm:
 Patch55: 00055-systemtap.patch
 
-# Upstream as of Python 2.7.4
-#  Patch101: 00101-lib64-regex.patch
-
 # Only used when "%{_lib}" == "lib64"
 # Fixup various paths throughout the build and in distutils from "lib" to "lib64",
 # and add the /usr/lib64/pythonMAJOR.MINOR/site-packages to sitedirs, in front of
@@ -450,9 +447,6 @@ Patch113: 00113-more-configuration-flags.patch
 # Not yet sent upstream
 Patch114: 00114-statvfs-f_flag-constants.patch
 
-# Upstream as of Python 2.7.3:
-#  Patch115: make-pydoc-more-robust-001.patch
-
 # Upstream r79310 removed the "Modules" directory from sys.path when Python is
 # running from the build directory on POSIX to fix a unit test (issue #8205).
 # This seems to have broken the compileall.py done in "make install": it cannot
@@ -475,12 +469,6 @@ Patch121: 00121-add-Modules-to-build-path.patch
 # must be set to enable the output on exit
 # Not yet sent upstream
 Patch125: 00125-less-verbose-COUNT_ALLOCS.patch
-
-# Upstream as of Python 2.7.5
-#  Patch126: fix-dbm_contains-on-64bit-bigendian.patch
-
-# Upstream as of Python 2.7.5
-#  Patch127: fix-test_structmember-on-64bit-bigendian.patch
 
 # 2.7.1 (in r84230) added a test to test_abc which fails if python is
 # configured with COUNT_ALLOCS, which is the case for our debug build
@@ -583,10 +571,6 @@ Patch143: 00143-tsc-on-ppc.patch
 # (Optionally) disable the gdbm module:
 Patch144: 00144-no-gdbm.patch
 
-# 00145 #
-# Upstream as of Python 2.7.3:
-#  Patch145: 00145-force-sys-platform-to-be-linux2.patch
-
 # 00146 #
 # Support OpenSSL FIPS mode (e.g. when OPENSSL_FORCE_FIPS_MODE=1 is set)
 # - handle failures from OpenSSL (e.g. on attempts to use MD5 in a
@@ -611,38 +595,12 @@ Patch146: 00146-hashlib-fips.patch
 # Sent upstream as http://bugs.python.org/issue14785
 Patch147: 00147-add-debug-malloc-stats.patch
 
-# 00148 #
-# Upstream as of Python 2.7.3:
-#  Patch148: 00148-gdbm-1.9-magic-values.patch
-
-# 00149 #
-# python3.spec's
-#   Patch149: 00149-backport-issue11254-pycache-bytecompilation-fix.patch
-# is not relevant for Python 2
-
-# 00150 #
-# python3.spec has:
-#  Patch150: 00150-disable-rAssertAlmostEqual-cmath-on-ppc.patch
-# as a workaround for a glibc bug on PPC (bz #750811)
-
-# 00151 #
-# Upstream as of Python 2.7.3:
-#  Patch151: 00151-fork-deadlock.patch
-
-# 00152 #
-# python3.spec has:
-#  Patch152: 00152-fix-test-gdb-regex.patch
-
 # 00153 #
 # Strip out lines of the form "warning: Unable to open ..." from gdb's stderr
 # when running test_gdb.py; also cope with change to gdb in F17 onwards in
 # which values are printed as "v@entry" rather than just "v":
 # Not yet sent upstream
 Patch153: 00153-fix-test_gdb-noise.patch
-
-# 00154 #
-# python3.spec on f15 has:
-#  Patch154: 00154-skip-urllib-test-requiring-working-DNS.patch
 
 # 00155 #
 # Avoid allocating thunks in ctypes unless absolutely necessary, to avoid
@@ -673,31 +631,6 @@ Patch156: 00156-gdb-autoload-safepath.patch
 # (rhbz#697470)
 Patch157: 00157-uid-gid-overflows.patch
 
-# Upstream as of Python 2.7.4
-# Patch158: 00158-fix-hashlib-leak.patch
-
-# 00160 #
-# python3.spec's
-#   Patch160: 00160-disable-test_fs_holes-in-rpm-build.patch
-# is not relevant for Python 2
-
-# 00161 #
-# python3.spec has:
-#   Patch161: 00161-fix-test_tools-directory.patch
-# which will likely become relevant for Python 2 next time we rebase
-
-# 00162 #
-# python3.spec has:
-#  Patch162: 00162-distutils-sysconfig-fix-CC-options.patch
-
-# 00163 #
-# python3.spec has:
-#  Patch163: 00163-disable-parts-of-test_socket-in-rpm-build.patch
-
-# 00164 #
-# python3.spec has:
-#  Patch164: 00164-disable-interrupted_write-tests-on-ppc.patch
-
 # 00165 #
 # Backport to Python 2 from Python 3.3 of improvements to the "crypt" module
 # adding precanned ways of salting a password (rhbz#835021)
@@ -706,16 +639,6 @@ Patch157: 00157-uid-gid-overflows.patch
 # to docstrings to note that this additional functionality is not standard
 # within 2.7
 Patch165: 00165-crypt-module-salt-backport.patch
-
-# 00166 #
-# Bulletproof the gdb debugging hooks against the case where co_filename for
-# a frame can't be read from the inferior process (rhbz#912025)
-#
-# Not yet sent upstream
-# This issue seems to have been fixed most probably by https://bugs.python.org/issue26799
-# as of Python 2.7.12 and test_gdb seems to fail with the patch applied
-# so dropping it for now.
-#Patch166: 00166-fix-fake-repr-in-gdb-hooks.patch
 
 # 00167 #
 # Don't run any of the stack navigation tests in test_gdb when Python is
@@ -757,12 +680,6 @@ Patch169: 00169-avoid-implicit-usage-of-md5-in-multiprocessing.patch
 # (rhbz#850013)
 Patch170: 00170-gc-assertions.patch
 
-# Upstream as of Python 2.7.4
-#  Patch171: 00171-raise-correct-exception-when-dev-urandom-is-missing.patch
-
-# Upstream as of Python 2.7.4
-#  Patch172: 00172-use-poll-for-multiprocessing-socket-connection.patch
-
 # 00173 #
 # Workaround for ENOPROTOOPT seen in Koji within
 # test.test_support.bind_port()
@@ -777,30 +694,6 @@ Patch173: 00173-workaround-ENOPROTOOPT-in-bind_port.patch
 # e.g. cmpi-bindings under systemd (rhbz#817554):
 Patch174: 00174-fix-for-usr-move.patch
 
-# 00175 #
-# Upstream as of Python 2.7.5
-#  Patch175: 00175-fix-configure-Wformat.patch
-
-# 00176 #
-# python3.spec had:
-#  Patch176: 00176-upstream-issue16754-so-extension.patch
-# doesn't affect python2
-
-# 00177 #
-# python3.spec has
-#  Patch177: 00177-platform-unicode.patch
-# Does not affect python2
-
-# 00178 #
-# python3.spec has
-#  Patch178: 00178-dont-duplicate-flags-in-sysconfig.patch
-# Does not affect python2 AFAICS (different sysconfig values initialization)
-
-# 00179 #
-# python3.spec has
-#  Patch179: 00179-dont-raise-error-on-gdb-corrupted-frames-in-backtrace.patch
-# Doesn't seem to affect python2
-
 # 00180 #
 # Enable building on ppc64p7
 # Not appropriate for upstream, Fedora-specific naming
@@ -814,14 +707,6 @@ Patch180: 00180-python-add-support-for-ppc64p7.patch
 # no API breakage, we apply this patch.
 # Doesn't apply to Python 3, where this is fixed otherwise and works.
 Patch181: 00181-allow-arbitrary-timeout-in-condition-wait.patch
-
-# 00182 #
-# python3.spec had
-#  Patch182: 00182-fix-test_gdb-test_threads.patch
-
-# 00183 #
-# python3.spec has
-#  Patch183: 00183-cve-2013-2099-fix-ssl-match_hostname-dos.patch
 
 # 00184 #
 # Fix for https://bugzilla.redhat.com/show_bug.cgi?id=979696
@@ -850,22 +735,9 @@ Patch187: 00187-add-RPATH-to-pyexpat.patch
 # rhbz#1008154 (patch by Attila Fazekas)
 Patch189: 00189-gdb-py-bt-dont-raise-exception-from-eval.patch
 
-# 00190 #
-# Importing get_python_version in bdist_rpm
-# http://bugs.python.org/issue18045
-# rhbz#1029082
-# FIXED UPSTREAM
-#Patch190: 00190-get_python_version.patch
-
 # 00191 #
 # Disabling NOOP test as it fails without internet connection
 Patch191: 00191-disable-NOOP.patch
-
-# 00192 #
-# Fixing buffer overflow (upstream patch)
-# rhbz#1062375
-# FIXED UPSTREAM
-#Patch192: 00192-buffer-overflow.patch
 
 # 00193 #
 # Enable loading sqlite extensions. This patch isn't needed for
@@ -873,35 +745,6 @@ Patch191: 00191-disable-NOOP.patch
 # rhbz#1066708
 # Patch provided by John C. Peterson
 Patch193: 00193-enable-loading-sqlite-extensions.patch
-
-# 00194 #
-# Fix tests with SQLite >= 3.8.4
-# http://bugs.python.org/issue20901
-# http://hg.python.org/cpython/raw-rev/1763e27a182d
-# FIXED UPSTREAM
-#Patch194: 00194-fix-tests-with-sqlite-3.8.4.patch
-
-# 00195 #
-# Since openssl-1.0.1h-5.fc21 SSLv2 and SSLV3 protocols
-# are disabled by default in openssl, according the comment in openssl
-# patch this affects only SSLv23_method, this patch enables SSLv2
-# and SSLv3 when SSLv23_method is used
-# Update:
-# Patch disabled, Openssl reverted disabling sslv3 and now
-# disables only sslv2 all tests pass
-#Patch195: 00195-enable-sslv23-in-ssl.patch
-
-# 00196 #
-# http://bugs.python.org/issue21308
-# Backport of ssl module from python3
-# FIXED UPSTREAM
-# Patch196: 00196-ssl-backport.patch
-
-# 00197 #
-# http://bugs.python.org/issue22023
-# Patch seg fault in unicodeobject.c
-# FIXED UPSTREAM
-# Patch197: 00197-unicode_fromformat.patch
 
 # 00198 #
 %if 0%{with_rewheel}
@@ -920,23 +763,6 @@ Patch200: 00200-skip-thread-test.patch
 # FIXED UPSTREAM: http://bugs.python.org/issue27369
 Patch209: 00209-fix-test-pyexpat-failure.patch
 
-# 00237 #
-# CVE-2016-0772 python: smtplib StartTLS stripping attack
-# rhbz#1303647: https://bugzilla.redhat.com/show_bug.cgi?id=1303647
-# rhbz#1346344: https://bugzilla.redhat.com/show_bug.cgi?id=1346344
-# FIXED UPSTREAM: https://hg.python.org/cpython/rev/b3ce713fb9be
-# Raise an error when STARTTLS fails
-# Patch237: 00237-Raise-an-error-when-STARTTLS-fails.patch
-
-# 00241 #
-# CVE-2016-5636: http://seclists.org/oss-sec/2016/q2/560
-# rhbz#1345858: https://bugzilla.redhat.com/show_bug.cgi?id=1345858
-# https://hg.python.org/cpython/rev/985fc64c60d6/
-# https://hg.python.org/cpython/rev/2edbdb79cd6d
-# Fix possible integer overflow and heap corruption in zipimporter.get_data()
-# FIXED UPSTREAM: https://bugs.python.org/issue26171
-#Patch241: 00241-CVE-2016-5636-buffer-overflow-in-zipimport-module-fix.patch
-
 # 00242 #
 # HTTPoxy attack (CVE-2016-1000110)
 # https://httpoxy.org/
@@ -944,10 +770,6 @@ Patch209: 00209-fix-test-pyexpat-failure.patch
 # Based on a patch by Rémi Rampin
 # Resolves: rhbz#1359175
 Patch242: 00242-CVE-2016-1000110-httpoxy.patch
-
-# 00243 #
-# Patch243: 00243-fix-mips64-triplet.patch
-# only necessary for python3
 
 # (New patches go here ^^^)
 #
@@ -1185,10 +1007,6 @@ done
 %patch6 -p1 -b .plural
 %patch7 -p1
 
-# Try not disabling egg-infos, bz#414711
-#patch50 -p1 -b .egginfo
-
-# patch101: upstream as of Python 2.7.4
 %if "%{_lib}" == "lib64"
 %patch102 -p1 -b .lib64
 %patch103 -p1 -b .lib64-sysconfig
@@ -1196,7 +1014,6 @@ done
 %endif
 
 %patch10 -p1 -b .binutils-no-dep
-# patch11: upstream as of Python 2.7.3
 %patch13 -p1 -b .socketmodule
 %patch14 -p1 -b .socketmodule2
 %patch16 -p1 -b .rpath
@@ -1214,12 +1031,9 @@ done
 
 %patch114 -p1 -b .statvfs-f-flag-constants
 
-# patch115: upstream as of Python 2.7.3
 
 %patch121 -p1
 %patch125 -p1 -b .less-verbose-COUNT_ALLOCS
-# 00126: upstream as of Python 2.7.5
-# 00127: upstream as of Python 2.7.5
 %patch128 -p1
 
 %patch130 -p1
@@ -1247,64 +1061,33 @@ done
 %if !%{with_gdbm}
 %patch144 -p1
 %endif
-# 00145: upstream as of Python 2.7.3
 %patch146 -p1
 %patch147 -p1
-# 00148: upstream as of Python 2.7.3
-# 00149: not for python 2
-# 00150: not for python 2
-# 00151: upstream as of Python 2.7.3
-# 00152: not for python 2
 %patch153 -p0
-# 00154: not for python 2
 %patch155 -p1
 %patch156 -p1
 %patch157 -p1
-# 00158: upstream as of Python 2.7.4
-# 00160: not for python 2
-# 00161: not for python 2 yet
-# 00162: not for python 2 yet
-# 00163: not for python 2 yet
-# 00164: not for python 2 yet
 %patch165 -p1
 mv Modules/cryptmodule.c Modules/_cryptmodule.c
-# 00166: dropped as of Python 2.7.12
 %patch167 -p1
 %patch168 -p1
 %patch169 -p1
 %patch170 -p1
-# 00171: upstream as of Python 2.7.4
-# 00171: upstream as of Python 2.7.4
 %patch173 -p1
 %patch174 -p1 -b .fix-for-usr-move
-# 00175: upstream as of Python 2.7.5
-# 00176: not for python 2
-# 00177: not for python 2
-# 00178: not for python 2
-# 00179: not for python 2
 %patch180 -p1
 %patch181 -p1
-# 00182: not for python 2
-# 00183: not for python 2
 %patch184 -p1
 %patch185 -p1
 %patch187 -p1
 %patch189 -p1
-# 00190: upstream as of Python 2.7.7
 %patch191 -p1
-# 00192: upstream as of Python 2.7.7
 %patch193 -p1
-# 00194: upstream as of Python 2.7.7
-#%patch195 -p1
-# 00196: upstream as of Python 2.7.9
-# 00197: upstream as of Python 2.7.9
 %if 0%{with_rewheel}
 %patch198 -p1
 %endif
 %patch200 -p1
 %patch209 -p1
-# 00237: upstream as of Python 2.7.12
-# 00241: upstream as of Python 2.7.12
 %patch242 -p1
 
 
@@ -2160,6 +1943,10 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Tue Aug 09 2016 Charalampos Stratakis <cstratak@redhat.com> - 2.7.12-4
+- SPEC file cleanup
+- Removal of unapplied patches
+
 * Tue Aug 09 2016 Charalampos Stratakis <cstratak@redhat.com> - 2.7.12-3
 - Fix for CVE-2016-1000110 HTTPoxy attack
 - SPEC file cleanup
