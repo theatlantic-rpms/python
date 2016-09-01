@@ -108,7 +108,7 @@ Summary: An interpreted, interactive, object-oriented programming language
 Name: %{python}
 # Remember to also rebase python-docs when changing this:
 Version: 2.7.12
-Release: 4%{?dist}
+Release: 5%{?dist}
 License: Python
 Group: Development/Languages
 Requires: %{python}-libs%{?_isa} = %{version}-%{release}
@@ -1943,6 +1943,9 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Thu Sep 01 2016 Charalampos Stratakis <cstratak@redhat.com> - 2.7.12-5
+- Rebase rewheel patch so it applies properly (rhbz#1372183)
+
 * Tue Aug 09 2016 Charalampos Stratakis <cstratak@redhat.com> - 2.7.12-4
 - SPEC file cleanup
 - Removal of unapplied patches

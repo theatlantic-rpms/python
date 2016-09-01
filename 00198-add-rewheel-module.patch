@@ -1,7 +1,81 @@
-diff -ru --new-file Python-2.7.9rc1-rewheel/Lib/ensurepip/rewheel/__init__.py Python-2.7.9rc1/Lib/ensurepip/rewheel/__init__.py
---- Python-2.7.9rc1-rewheel/Lib/ensurepip/rewheel/__init__.py	1970-01-01 01:00:00.000000000 +0100
-+++ Python-2.7.9rc1/Lib/ensurepip/rewheel/__init__.py	2014-12-08 11:29:34.215237317 +0100
-@@ -0,0 +1,143 @@
+diff --git a/Lib/ensurepip/__init__.py b/Lib/ensurepip/__init__.py
+index 14c9adb..e20104e 100644
+--- a/Lib/ensurepip/__init__.py
++++ b/Lib/ensurepip/__init__.py
+@@ -7,6 +7,7 @@ import pkgutil
+ import shutil
+ import sys
+ import tempfile
++from ensurepip import rewheel
+
+
+ __all__ = ["version", "bootstrap"]
+@@ -43,6 +44,8 @@ def _run_pip(args, additional_paths=None):
+
+     # Install the bundled software
+     import pip
++    if args[0] in ["install", "list", "wheel"]:
++        args.append('--pre')
+     pip.main(args)
+
+
+@@ -93,21 +96,40 @@ def bootstrap(root=None, upgrade=False, user=False,
+         # omit pip and easy_install
+         os.environ["ENSUREPIP_OPTIONS"] = "install"
+
++    whls = []
++    rewheel_dir = None
++    # try to see if we have system-wide versions of _PROJECTS
++    dep_records = rewheel.find_system_records([p[0] for p in _PROJECTS])
++    # TODO: check if system-wide versions are the newest ones
++    # if --upgrade is used?
++    if all(dep_records):
++        # if we have all _PROJECTS installed system-wide, we'll recreate
++        # wheels from them and install those
++        rewheel_dir = tempfile.mkdtemp()
++        for dr in dep_records:
++            new_whl = rewheel.rewheel_from_record(dr, rewheel_dir)
++            whls.append(os.path.join(rewheel_dir, new_whl))
++    else:
++        # if we don't have all the _PROJECTS installed system-wide,
++        # let's just fall back to bundled wheels
++        for project, version in _PROJECTS:
++            whl = os.path.join(
++                os.path.dirname(__file__),
++                "_bundled",
++                "{}-{}-py2.py3-none-any.whl".format(project, version)
++            )
++            whls.append(whl)
++
+     tmpdir = tempfile.mkdtemp()
+     try:
+         # Put our bundled wheels into a temporary directory and construct the
+         # additional paths that need added to sys.path
+         additional_paths = []
+-        for project, version in _PROJECTS:
+-            wheel_name = "{}-{}-py2.py3-none-any.whl".format(project, version)
+-            whl = pkgutil.get_data(
+-                "ensurepip",
+-                "_bundled/{}".format(wheel_name),
+-            )
+-            with open(os.path.join(tmpdir, wheel_name), "wb") as fp:
+-                fp.write(whl)
+-
+-            additional_paths.append(os.path.join(tmpdir, wheel_name))
++        for whl in whls:
++            shutil.copy(whl, tmpdir)
++            additional_paths.append(os.path.join(tmpdir, os.path.basename(whl)))
++        if rewheel_dir:
++            shutil.rmtree(rewheel_dir)
+
+         # Construct the arguments to be passed to the pip command
+         args = ["install", "--no-index", "--find-links", tmpdir]
+diff --git a/Lib/ensurepip/rewheel/__init__.py b/Lib/ensurepip/rewheel/__init__.py
+new file mode 100644
+index 0000000..75c2094
+--- /dev/null
++++ b/Lib/ensurepip/rewheel/__init__.py
+@@ -0,0 +1,158 @@
 +import argparse
 +import codecs
 +import csv
@@ -160,81 +234,11 @@ diff -ru --new-file Python-2.7.9rc1-rewheel/Lib/ensurepip/rewheel/__init__.py Py
 +        else:
 +            pass # bad RECORD or empty line
 +    return to_write, to_omit
-diff -Nur Python-2.7.9/Lib/ensurepip/__init__.py Python-2.7.9-rewheel/Lib/ensurepip/__init__.py
---- Python-2.7.9/Lib/ensurepip/__init__.py	2014-08-21 10:49:30.792695824 +0200
-+++ Python-2.7.9-rewheel/Lib/ensurepip/__init__.py	2014-08-21 10:10:41.958341726 +0200
-@@ -7,6 +7,7 @@ import pkgutil
- import shutil
- import sys
- import tempfile
-+from ensurepip import rewheel
-
-
- __all__ = ["version", "bootstrap"]
-@@ -43,6 +44,8 @@
-
-     # Install the bundled software
-     import pip
-+    if args[0] in ["install", "list", "wheel"]:
-+        args.append('--pre')
-     pip.main(args)
-
-
-@@ -93,21 +96,40 @@ def bootstrap(root=None, upgrade=False,
-         # omit pip and easy_install
-         os.environ["ENSUREPIP_OPTIONS"] = "install"
-
-+    whls = []
-+    rewheel_dir = None
-+    # try to see if we have system-wide versions of _PROJECTS
-+    dep_records = rewheel.find_system_records([p[0] for p in _PROJECTS])
-+    # TODO: check if system-wide versions are the newest ones
-+    # if --upgrade is used?
-+    if all(dep_records):
-+        # if we have all _PROJECTS installed system-wide, we'll recreate
-+        # wheels from them and install those
-+        rewheel_dir = tempfile.mkdtemp()
-+        for dr in dep_records:
-+            new_whl = rewheel.rewheel_from_record(dr, rewheel_dir)
-+            whls.append(os.path.join(rewheel_dir, new_whl))
-+    else:
-+        # if we don't have all the _PROJECTS installed system-wide,
-+        # let's just fall back to bundled wheels
-+        for project, version in _PROJECTS:
-+            whl = os.path.join(
-+                os.path.dirname(__file__),
-+                "_bundled",
-+                "{}-{}-py2.py3-none-any.whl".format(project, version)
-+            )
-+            whls.append(whl)
-+
-     tmpdir = tempfile.mkdtemp()
-     try:
-         # Put our bundled wheels into a temporary directory and construct the
-         # additional paths that need added to sys.path
-         additional_paths = []
--        for project, version in _PROJECTS:
--            wheel_name = "{}-{}-py2.py3-none-any.whl".format(project, version)
--            whl = pkgutil.get_data(
--                "ensurepip",
--                "_bundled/{}".format(wheel_name),
--            )
--            with open(os.path.join(tmpdir, wheel_name), "wb") as fp:
--                fp.write(whl)
--
--            additional_paths.append(os.path.join(tmpdir, wheel_name))
-+        for whl in whls:
-+            shutil.copy(whl, tmpdir)
-+            additional_paths.append(os.path.join(tmpdir, os.path.basename(whl)))
-+        if rewheel_dir:
-+            shutil.rmtree(rewheel_dir)
-
-         # Construct the arguments to be passed to the pip command
-         args = ["install", "--no-index", "--find-links", tmpdir]
-diff -Nur Python-2.7.9/Makefile.pre.in Python-2.7.9-rewheel/Makefile.pre.in
---- Python-2.7.9/Makefile.pre.in	2014-08-21 10:49:31.512695040 +0200
-+++ Python-2.7.9-rewheel/Makefile.pre.in	2014-08-21 10:10:41.961341722 +0200
-@@ -976,7 +976,7 @@ LIBSUBDIRS= lib-tk lib-tk/test lib-tk/te
+diff --git a/Makefile.pre.in b/Makefile.pre.in
+index ca33158..44bdde5 100644
+--- a/Makefile.pre.in
++++ b/Makefile.pre.in
+@@ -1066,7 +1066,7 @@ LIBSUBDIRS=	lib-tk lib-tk/test lib-tk/test/test_tkinter \
 		test/tracedmodules \
 		encodings compiler hotshot \
 		email email/mime email/test email/test/data \
