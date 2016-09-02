@@ -108,7 +108,7 @@ Summary: An interpreted, interactive, object-oriented programming language
 Name: %{python}
 # Remember to also rebase python-docs when changing this:
 Version: 2.7.12
-Release: 5%{?dist}
+Release: 6%{?dist}
 License: Python
 Group: Development/Languages
 Requires: %{python}-libs%{?_isa} = %{version}-%{release}
@@ -790,9 +790,6 @@ Patch5000: 05000-autotool-intermediates.patch
 # ======================================================
 
 %if %{main_python}
-Obsoletes: Distutils
-Provides: Distutils
-Obsoletes: python2
 Provides: python2 = %{version}
 Obsoletes: python-elementtree <= 1.2.6
 Obsoletes: python-ordereddict <= 1.1-8
@@ -866,7 +863,6 @@ Requires: pkgconfig
 # package
 Conflicts: %{python} < %{version}-%{release}
 %if %{main_python}
-Obsoletes: python2-devel
 Provides: python2-devel = %{version}-%{release}
 Provides: python2-devel%{?_isa} = %{version}-%{release}
 %endif
@@ -888,7 +884,6 @@ Group: Development/Tools
 Requires: %{name} = %{version}-%{release}
 Requires: %{tkinter} = %{version}-%{release}
 %if %{main_python}
-Obsoletes: python2-tools
 Provides: python2-tools = %{version}
 %endif
 
@@ -902,7 +897,6 @@ Summary: A graphical user interface for the Python scripting language
 Group: Development/Languages
 Requires: %{name} = %{version}-%{release}
 %if %{main_python}
-Obsoletes: tkinter2
 Provides: tkinter2 = %{version}
 %endif
 
@@ -1943,6 +1937,9 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Fri Sep 02 2016 Charalampos Stratakis <cstratak@redhat.com> - 2.7.12-6
+- Remove unversioned Obsoletes
+
 * Thu Sep 01 2016 Charalampos Stratakis <cstratak@redhat.com> - 2.7.12-5
 - Rebase rewheel patch so it applies properly (rhbz#1372183)
 
