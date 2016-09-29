@@ -108,7 +108,7 @@ Summary: An interpreted, interactive, object-oriented programming language
 Name: %{python}
 # Remember to also rebase python-docs when changing this:
 Version: 2.7.12
-Release: 6%{?dist}
+Release: 7%{?dist}
 License: Python
 Group: Development/Languages
 Requires: %{python}-libs%{?_isa} = %{version}-%{release}
@@ -810,6 +810,7 @@ Obsoletes: PyXML <= 0.8.4-29
 # (having Obsoletes here caused problems with multilib; see rhbz#667984)
 Provides:   python-argparse = %{version}-%{release}
 %endif
+Provides:   python27 = %{version}-%{release}
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
@@ -1937,6 +1938,9 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Thu Sep 29 2016 Miro Hrončok <mhroncok@redhat.com> - 2.7.12-7
+- Provide python27
+
 * Fri Sep 02 2016 Charalampos Stratakis <cstratak@redhat.com> - 2.7.12-6
 - Remove unversioned Obsoletes
 
