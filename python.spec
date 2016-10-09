@@ -47,7 +47,7 @@
 %global with_systemtap 1
 
 # some arches don't have valgrind so we need to disable its support on them
-%ifnarch s390 %{mips}
+%ifnarch s390 %{mips} riscv64
 %global with_valgrind 1
 %else
 %global with_valgrind 0
@@ -1402,7 +1402,7 @@ install -d %{buildroot}/%{_prefix}/lib/python%{pybasever}/site-packages
 %global _pyconfig32_h pyconfig-32.h
 %global _pyconfig64_h pyconfig-64.h
 
-%ifarch %{power64} s390x x86_64 ia64 alpha sparc64 aarch64 %{mips64}
+%ifarch %{power64} s390x x86_64 ia64 alpha sparc64 aarch64 %{mips64} riscv64
 %global _pyconfig_h %{_pyconfig64_h}
 %else
 %global _pyconfig_h %{_pyconfig32_h}
