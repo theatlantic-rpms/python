@@ -108,7 +108,7 @@ Summary: An interpreted, interactive, object-oriented programming language
 Name: %{python}
 # Remember to also rebase python-docs when changing this:
 Version: 2.7.12
-Release: 7%{?dist}
+Release: 8%{?dist}
 License: Python
 Group: Development/Languages
 Requires: %{python}-libs%{?_isa} = %{version}-%{release}
@@ -771,6 +771,13 @@ Patch209: 00209-fix-test-pyexpat-failure.patch
 # Resolves: rhbz#1359175
 Patch242: 00242-CVE-2016-1000110-httpoxy.patch
 
+# 00247 #
+# Port ssl and hashlib modules to OpenSSL 1.1.0.
+# As of F26, OpenSSL is rebased to 1.1.0, so in order for python
+# to not FTBFS we need to backport this patch from 2.7.13
+# FIXED UPSTREAM: https://bugs.python.org/issue26470
+Patch247: 00247-port-ssl-and-hashlib-to-OpenSSL-1.1.0.patch
+
 # (New patches go here ^^^)
 #
 # When adding new patches to "python" and "python3" in Fedora, EL, etc.,
@@ -983,15 +990,17 @@ done
 #   Remove embedded copy of zlib:
 rm -r Modules/zlib || exit 1
 
+## Disabling hashlib patch for now as it needs to be reimplemented
+## for OpenSSL 1.1.0.
 # Don't build upstream Python's implementation of these crypto algorithms;
 # instead rely on _hashlib and OpenSSL.
 #
 # For example, in our builds md5.py uses always uses hashlib.md5 (rather than
 # falling back to _md5 when hashlib.md5 is not available); hashlib.md5 is
 # implemented within _hashlib via OpenSSL (and thus respects FIPS mode)
-for f in md5module.c md5.c shamodule.c sha256module.c sha512module.c; do
-    rm Modules/$f
-done
+#for f in md5module.c md5.c shamodule.c sha256module.c sha512module.c; do
+#    rm Modules/$f
+#done
 
 #
 # Apply patches:
@@ -1056,7 +1065,7 @@ done
 %if !%{with_gdbm}
 %patch144 -p1
 %endif
-%patch146 -p1
+#patch146 -p1
 %patch147 -p1
 %patch153 -p0
 %patch155 -p1
@@ -1084,6 +1093,7 @@ mv Modules/cryptmodule.c Modules/_cryptmodule.c
 %patch200 -p1
 %patch209 -p1
 %patch242 -p1
+%patch247 -p1
 
 
 # This shouldn't be necesarry, but is right now (2.2a3)
@@ -1598,6 +1608,12 @@ rm -fr %{buildroot}
 %doc README
 %dir %{pylibdir}
 %dir %{dynload_dir}
+
+%{dynload_dir}/_md5module.so
+%{dynload_dir}/_sha256module.so
+%{dynload_dir}/_sha512module.so
+%{dynload_dir}/_shamodule.so
+
 %{dynload_dir}/Python-%{version}-py%{pybasever}.egg-info
 %{dynload_dir}/_bisectmodule.so
 %{dynload_dir}/_bsddb.so
@@ -1812,6 +1828,12 @@ rm -fr %{buildroot}
 
 # Analog of the -libs subpackage's files, with debug builds of the built-in
 # "extension" modules:
+
+%{dynload_dir}/_md5module_d.so
+%{dynload_dir}/_sha256module_d.so
+%{dynload_dir}/_sha512module_d.so
+%{dynload_dir}/_shamodule_d.so
+
 %{dynload_dir}/_bisectmodule_d.so
 %{dynload_dir}/_bsddb_d.so
 %{dynload_dir}/_codecs_cn_d.so
@@ -1938,6 +1960,11 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Wed Oct 12 2016 Charalampos Stratakis <cstratak@redhat.com> - 2.7.12-8
+- Port ssl and hashlib modules to OpenSSL 1.1.0
+- Drop hashlib patch for now
+- Add riscv64 arch to 64bit and no-valgrind arches
+
 * Thu Sep 29 2016 Miro Hrončok <mhroncok@redhat.com> - 2.7.12-7
 - Provide python27
 
