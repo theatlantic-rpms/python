@@ -1,0 +1,155 @@
+diff --git a/Doc/library/sqlite3.rst b/Doc/library/sqlite3.rst
+index bd5dd14691..b75a648205 100644
+--- a/Doc/library/sqlite3.rst
++++ b/Doc/library/sqlite3.rst
+@@ -164,7 +164,7 @@ Module functions and constants
+    first blank for the column name: the column name would simply be "x".
+ 
+ 
+-.. function:: connect(database[, timeout, detect_types, isolation_level, check_same_thread, factory, cached_statements])
++.. function:: connect(database[, timeout, detect_types, isolation_level, check_same_thread, factory, cached_statements, uri])
+ 
+    Opens a connection to the SQLite database file *database*. You can use
+    ``":memory:"`` to open a database connection to a database that resides in RAM
+@@ -200,6 +200,14 @@ Module functions and constants
+    for the connection, you can set the *cached_statements* parameter. The currently
+    implemented default is to cache 100 statements.
+ 
++   If *uri* is :const:`True`, *database* is interpreted as a URI. This allows you
++   to specify options. For example, to open a database in read-only mode you can
++   use::
++
++       db = sqlite3.connect('file:path/to/database?mode=ro', uri=True)
++
++   More information about this feature, including a list of recognized options, can
++   be found in the `SQLite URI documentation <http://www.sqlite.org/uri.html>`_.
+ 
+ .. function:: register_converter(typename, callable)
+ 
+diff --git a/Lib/sqlite3/test/dbapi.py b/Lib/sqlite3/test/dbapi.py
+index 615ebf5106..83cfa891f1 100644
+--- a/Lib/sqlite3/test/dbapi.py
++++ b/Lib/sqlite3/test/dbapi.py
+@@ -22,6 +22,8 @@
+ # 3. This notice may not be removed or altered from any source distribution.
+ 
+ import unittest
++from test.support import TESTFN
++import os
+ import sys
+ import sqlite3 as sqlite
+ from test import test_support
+@@ -142,6 +144,21 @@ class ConnectionTests(unittest.TestCase):
+         self.assertEqual(self.cx.ProgrammingError, sqlite.ProgrammingError)
+         self.assertEqual(self.cx.NotSupportedError, sqlite.NotSupportedError)
+ 
++    def CheckOpenUri(self):
++        if sqlite.sqlite_version_info < (3, 7, 7):
++            with self.assertRaises(sqlite.NotSupportedError):
++                sqlite.connect(':memory:', uri=True)
++        else:
++            with sqlite.connect(TESTFN) as cx:
++                cx.execute('create table test(id integer)')
++            with sqlite.connect('file:' + TESTFN, uri=True) as cx:
++                cx.execute('insert into test(id) values(0)')
++            with sqlite.connect('file:' + TESTFN + '?mode=ro', uri=True) as cx:
++                with self.assertRaises(sqlite.OperationalError):
++                    cx.execute('insert into test(id) values(1)')
++                    os.remove(TESTFN)
++
++
+ class CursorTests(unittest.TestCase):
+     def setUp(self):
+         self.cx = sqlite.connect(":memory:")
+diff --git a/Modules/_sqlite/connection.c b/Modules/_sqlite/connection.c
+index 237d6e419a..87b88f651e 100644
+--- a/Modules/_sqlite/connection.c
++++ b/Modules/_sqlite/connection.c
+@@ -59,7 +59,7 @@ static void _sqlite3_result_error(sqlite3_context* ctx, const char* errmsg, int
+ 
+ int pysqlite_connection_init(pysqlite_Connection* self, PyObject* args, PyObject* kwargs)
+ {
+-    static char *kwlist[] = {"database", "timeout", "detect_types", "isolation_level", "check_same_thread", "factory", "cached_statements", NULL, NULL};
++    static char *kwlist[] = {"database", "timeout", "detect_types", "isolation_level", "check_same_thread", "factory", "cached_statements", "uri", NULL, NULL};
+ 
+     PyObject* database;
+     int detect_types = 0;
+@@ -67,6 +67,7 @@ int pysqlite_connection_init(pysqlite_Connection* self, PyObject* args, PyObject
+     PyObject* factory = NULL;
+     int check_same_thread = 1;
+     int cached_statements = 100;
++    int uri = 0;
+     double timeout = 5.0;
+     int rc;
+     PyObject* class_attr = NULL;
+@@ -74,8 +75,8 @@ int pysqlite_connection_init(pysqlite_Connection* self, PyObject* args, PyObject
+     int is_apsw_connection = 0;
+     PyObject* database_utf8;
+ 
+-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O|diOiOi", kwlist,
+-                                     &database, &timeout, &detect_types, &isolation_level, &check_same_thread, &factory, &cached_statements))
++    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O|diOiOii", kwlist,
++                                     &database, &timeout, &detect_types, &isolation_level, &check_same_thread, &factory, &cached_statements, &uri))
+     {
+         return -1;
+     }
+@@ -104,9 +105,20 @@ int pysqlite_connection_init(pysqlite_Connection* self, PyObject* args, PyObject
+                 return -1;
+             }
+         }
+-
++#ifdef SQLITE_OPEN_URI
++        Py_BEGIN_ALLOW_THREADS
++        rc = sqlite3_open_v2(PyString_AsString(database_utf8), &self->db,
++                             SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE |
++                             (uri ? SQLITE_OPEN_URI : 0), NULL);
++#else
++         if (uri) {
++             Py_DECREF(database_utf8);
++             PyErr_SetString(pysqlite_NotSupportedError, "URIs not supported");
++             return -1;
++         }
+         Py_BEGIN_ALLOW_THREADS
+         rc = sqlite3_open(PyString_AsString(database_utf8), &self->db);
++#endif
+         Py_END_ALLOW_THREADS
+ 
+         Py_DECREF(database_utf8);
+diff --git a/Modules/_sqlite/module.c b/Modules/_sqlite/module.c
+index 33611d9dad..dfe79e1736 100644
+--- a/Modules/_sqlite/module.c
++++ b/Modules/_sqlite/module.c
+@@ -50,19 +50,20 @@ static PyObject* module_connect(PyObject* self, PyObject* args, PyObject*
+      * C-level, so this code is redundant with the one in connection_init in
+      * connection.c and must always be copied from there ... */
+ 
+-    static char *kwlist[] = {"database", "timeout", "detect_types", "isolation_level", "check_same_thread", "factory", "cached_statements", NULL, NULL};
++    static char *kwlist[] = {"database", "timeout", "detect_types", "isolation_level", "check_same_thread", "factory", "cached_statements", "uri", NULL, NULL};
+     PyObject* database;
+     int detect_types = 0;
+     PyObject* isolation_level;
+     PyObject* factory = NULL;
+     int check_same_thread = 1;
+     int cached_statements;
++    int uri = 0;
+     double timeout = 5.0;
+ 
+     PyObject* result;
+ 
+-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O|diOiOi", kwlist,
+-                                     &database, &timeout, &detect_types, &isolation_level, &check_same_thread, &factory, &cached_statements))
++    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O|diOiOii", kwlist,
++                                     &database, &timeout, &detect_types, &isolation_level, &check_same_thread, &factory, &cached_statements, &uri))
+     {
+         return NULL; 
+     }
+@@ -77,7 +78,8 @@ static PyObject* module_connect(PyObject* self, PyObject* args, PyObject*
+ }
+ 
+ PyDoc_STRVAR(module_connect_doc,
+-"connect(database[, timeout, isolation_level, detect_types, factory])\n\
++"connect(database[, timeout, detect_types, isolation_level,\n\
++        check_same_thread, factory, cached_statements, uri])\n\
+ \n\
+ Opens a connection to the SQLite database file *database*. You can use\n\
+ \":memory:\" to open a database connection to a database that resides in\n\

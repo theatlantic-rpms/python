@@ -107,8 +107,8 @@
 Summary: An interpreted, interactive, object-oriented programming language
 Name: %{python}
 # Remember to also rebase python-docs when changing this:
-Version: 2.7.13
-Release: 12%{?dist}
+Version: 2.7.14
+Release: 1%{?dist}
 License: Python
 Group: Development/Languages
 Requires: %{python}-libs%{?_isa} = %{version}-%{release}
@@ -755,6 +755,8 @@ Patch198: 00198-add-rewheel-module.patch
 # This is the generated patch to "configure"; see the description of
 #   %{regenerate_autotooling_patch}
 # above:
+Patch4000: 04000-add-sqlite-uri.patch
+
 Patch5000: 05000-autotool-intermediates.patch
 
 # ======================================================
@@ -1058,6 +1060,8 @@ mv Modules/cryptmodule.c Modules/_cryptmodule.c
 
 # This shouldn't be necesarry, but is right now (2.2a3)
 find -name "*~" |xargs rm -f
+
+%patch4000 -p1
 
 %if ! 0%{regenerate_autotooling_patch}
 # Normally we apply the patch to "configure"
@@ -1921,6 +1925,10 @@ rm -fr %{buildroot}
 # ======================================================
 
 %changelog
+* Mon Oct 09 2017 Frankie Dintino <fdintino@gmail.com> - 2.7.14-1
+- Upgrade to python 2.7.14
+- Add backport of python 3.4 support for sqlite uri kwarg
+
 * Mon Jun 26 2017 Frankie Dintino <fdintino@gmail.com> - 2.7.13-12
 - Upgrade to python 2.7.13
 

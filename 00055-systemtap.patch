@@ -1,7 +1,7 @@
 diff -up Python-2.7rc1/configure.ac.systemtap Python-2.7rc1/configure.ac
 --- Python-2.7rc1/configure.ac.systemtap	2010-06-06 10:53:15.514975012 -0400
 +++ Python-2.7rc1/configure.ac	2010-06-06 10:53:15.520974361 -0400
-@@ -2616,6 +2616,38 @@ if test "$with_valgrind" != no; then
+@@ -3013,6 +3013,38 @@ if test "$with_valgrind" != no; then
      )
  fi
  
@@ -57,7 +57,7 @@ diff -up Python-2.7rc1/Include/pydtrace.d.systemtap Python-2.7rc1/Include/pydtra
 diff -up Python-2.7rc1/Makefile.pre.in.systemtap Python-2.7rc1/Makefile.pre.in
 --- Python-2.7rc1/Makefile.pre.in.systemtap	2010-06-06 10:53:15.488978775 -0400
 +++ Python-2.7rc1/Makefile.pre.in	2010-06-06 11:05:30.411100568 -0400
-@@ -298,6 +298,7 @@ PYTHON_OBJS=	\
+@@ -337,6 +337,7 @@ PYTHON_OBJS=	\
  		Python/formatter_unicode.o \
  		Python/formatter_string.o \
  		Python/$(DYNLOADFILE) \
@@ -65,7 +65,7 @@ diff -up Python-2.7rc1/Makefile.pre.in.systemtap Python-2.7rc1/Makefile.pre.in
  		$(LIBOBJS) \
  		$(MACHDEP_OBJS) \
  		$(THREADOBJ)
-@@ -599,6 +600,18 @@ Python/formatter_unicode.o: $(srcdir)/Py
+@@ -739,6 +740,18 @@ Python/formatter_unicode.o: $(srcdir)/Python/formatter_unicode.c \
  Python/formatter_string.o: $(srcdir)/Python/formatter_string.c \
  				$(STRINGLIB_HEADERS)
  
@@ -84,22 +84,22 @@ diff -up Python-2.7rc1/Makefile.pre.in.systemtap Python-2.7rc1/Makefile.pre.in
  ############################################################################
  # Header files
  
-@@ -1251,7 +1264,7 @@ Python/thread.o: @THREADHEADERS@
+@@ -1470,7 +1483,7 @@ Python/thread.o: @THREADHEADERS@
  .PHONY: frameworkinstall frameworkinstallframework frameworkinstallstructure
  .PHONY: frameworkinstallmaclib frameworkinstallapps frameworkinstallunixtools
- .PHONY: frameworkaltinstallunixtools recheck autoconf clean clobber distclean
--.PHONY: smelly funny patchcheck touch altmaninstall commoninstall
-+.PHONY: smelly funny patchcheck touch altmaninstall commoninstall buildinclude
+ .PHONY: frameworkaltinstallunixtools recheck clean clobber distclean
+-.PHONY: smelly funny patchcheck altmaninstall commoninstall
++.PHONY: smelly funny patchcheck altmaninstall commoninstall buildinclude
  .PHONY: gdbhooks
  
  # IF YOU PUT ANYTHING HERE IT WILL GO AWAY
 diff -up Python-2.7rc1/pyconfig.h.in.systemtap Python-2.7rc1/pyconfig.h.in
 --- Python-2.7rc1/pyconfig.h.in.systemtap	2010-05-08 07:04:18.000000000 -0400
 +++ Python-2.7rc1/pyconfig.h.in	2010-06-06 10:53:15.521974070 -0400
-@@ -1074,6 +1074,9 @@
+@@ -1115,6 +1115,9 @@
  /* Define if you want documentation strings in extension modules */
  #undef WITH_DOC_STRINGS
- 
+
 +/* Define if you want to compile in Dtrace support */
 +#undef WITH_DTRACE
 +
@@ -120,7 +120,7 @@ diff -up Python-2.7rc1/Python/ceval.c.systemtap Python-2.7rc1/Python/ceval.c
  #ifndef WITH_TSC
  
  #define READ_TIMESTAMP(var)
-@@ -671,6 +675,55 @@ PyEval_EvalCode(PyCodeObject *co, PyObje
+@@ -674,6 +678,55 @@ PyEval_EvalCode(PyCodeObject *co, PyObject *globals, PyObject *locals)
                        NULL);
  }
  
@@ -176,7 +176,7 @@ diff -up Python-2.7rc1/Python/ceval.c.systemtap Python-2.7rc1/Python/ceval.c
  
  /* Interpreter main loop */
  
-@@ -909,6 +962,9 @@ PyEval_EvalFrameEx(PyFrameObject *f, int
+@@ -1009,6 +1062,9 @@ PyEval_EvalFrameEx(PyFrameObject *f, int throwflag)
          }
      }
  
@@ -186,7 +186,7 @@ diff -up Python-2.7rc1/Python/ceval.c.systemtap Python-2.7rc1/Python/ceval.c
      co = f->f_code;
      names = co->co_names;
      consts = co->co_consts;
-@@ -3000,6 +3056,9 @@ fast_yield:
+@@ -3338,6 +3394,9 @@ fast_yield:
  
      /* pop frame */
  exit_eval_frame:
